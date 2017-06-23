@@ -52,10 +52,22 @@ async def getChannels(ctx):
             await client.say(channel)
 
 @client.command(pass_context = True)
-async def arith(ctx, symbol, *args):
+async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
+    if firstVal == None or secondVal == None:
+        await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
+        return
+    
+    if symbol != "+" and symbol != "*" and symbol != "-" and symbol != "/":
+        await client.say(ctx.message.author.mention + ": Operations accepted are +, -, * and /")
+        return
+
     flagSymbol = False
-    if symbol == "*" or symbol == "/":
-        value = 1
+    if symbol == "*":
+        value = int(firstVal) * int(secondVal)
+    elif symbol == "-":
+        value = int(firstVal) - int(secondVal)
+    elif symbol == "/":
+        value = int(firstVal) / int(secondVal)
     else:
         value = 0
 
@@ -67,15 +79,9 @@ async def arith(ctx, symbol, *args):
         elif symbol == "/":
             value /= float(arg)
         elif symbol == "-":
-            pass
-        else:
-            flagSymbol = True
-            break
-
-    if symbol == "+" or symbol == "*" or symbol == "-" or symbol == "/":
-        await client.say(value)
-    else:
-        await client.say(ctx.message.author.mention + ": You did not enter a valid operation.")
+            value -= int(arg)
+            
+    await client.say(value)
 
 #####ADMIN FUNCTIONS#####
             
