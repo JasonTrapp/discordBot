@@ -17,33 +17,42 @@ async def on_ready():
 
 
 
+
 @client.command()
 async def hello(*args):
     await client.say("Hello")
 
-#TODO
+
+
+
+#TODO FIX NONE EXISTANT MEMBER
 @client.command(pass_context = True)
-async def kill(ctx, *, member: discord.Member = None):
+async def kill(ctx, member: discord.Member = None):
+    """
+    Kill a specified user
+
+    """
     if member is None:
         await client.say(ctx.message.author.mention + ": I can't kill someone unless you give me a name.")
         return
-    try:
-        if member.id == client.user.id:
-            await client.say(ctx.message.author.mention + ": Why do you want me to kill myself?")
-        elif member.id == ctx.message.author.id:
-            await client.say(ctx.message.author.mention + ": Why do you want to die?")
-        else:
-            await client.say(ctx.message.author.mention + ": Killing " + member.mention)
-    except Exception:
-        await client.say(ctx.message.author.mention + ", the mentioned user does not exist.")
-    else:
-        await client.say(ctx.message.author.mention + ", the mentioned user does not exist.")
+    
+    flag = False
+    for server in client.servers:
+        for memberP in server.members:
+            print("test")
+            if member.name == memberP.name:
+                flag = True
+                break
 
-#TODO
-@client.command(pass_context = True)
-async def getAllMembers(ctx, *args):
-    for obj in discord.Server(*args).members:
-        await client.say(obj.id)
+    if not flag:
+        await client.say(ctx.message.author.mention + ": person does not exist.")
+    
+    if member.id == client.user.id:
+        await client.say(ctx.message.author.mention + ": Why do you want me to kill myself?")
+    elif member.id == ctx.message.author.id:
+        await client.say(ctx.message.author.mention + ": Why do you want to die?")
+    else:
+        await client.say(ctx.message.author.mention + ": Killing " + member.mention)
 
 @client.command(pass_context = True)
 async def getChannels(ctx):
@@ -53,6 +62,12 @@ async def getChannels(ctx):
 
 @client.command(pass_context = True)
 async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
+    """
+    Perform arithmetic operations: +, -, *, /. Must provide 2 numbers to calculate.
+    
+    Must be of the form: .arith operation value1, value2, ..., valuen
+    valuen being the nth number entered
+    """
     if firstVal == None or secondVal == None:
         await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
         return
@@ -107,6 +122,7 @@ async def saveMessages(ctx, fileName):
         counter += 1
 
     for count in range(counter-1, -1, -1):
+        file.write(str(messages[count].timestamp.date()) + "\n")
         file.write(messages[count].content + "\n")
 
     file.close()
