@@ -91,7 +91,7 @@ async def clearChat(ctx, number):
 
 #Save contents of announcements
 @client.command(pass_context = True)
-async def saveAnnouncements(ctx, saveMessage: str):
+async def saveAnnouncements(ctx):
     file = open("announcement.txt", "w")
     await client.delete_message(ctx.message)
     messages = []
@@ -107,7 +107,7 @@ async def saveAnnouncements(ctx, saveMessage: str):
 
 #Save contents of rules
 @client.command(pass_context = True)
-async def saveRules(ctx, saveRules: str):
+async def saveRules(ctx):
     file = open("rules.txt", "w")
     await client.delete_message(ctx.message)
     messages = []
