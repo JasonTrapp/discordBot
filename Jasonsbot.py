@@ -91,8 +91,8 @@ async def clearChat(ctx, number):
 
 #Save contents of announcements
 @client.command(pass_context = True)
-async def saveAnnouncements(ctx):
-    file = open("announcement.txt", "w")
+async def saveMessages(ctx, fileName):
+    file = open(fileName + ".txt", "w")
     await client.delete_message(ctx.message)
     messages = []
     counter = 0
@@ -103,22 +103,6 @@ async def saveAnnouncements(ctx):
     for count in range(counter-1, -1, -1):
         file.write(messages[count].content + "\n")
 
-    file.close()
-
-#Save contents of rules
-@client.command(pass_context = True)
-async def saveRules(ctx):
-    file = open("rules.txt", "w")
-    await client.delete_message(ctx.message)
-    messages = []
-    counter = 0
-    async for i in client.logs_from(ctx.message.channel, limit=100):
-        messages.append(i)
-        counter += 1
-
-    for count in range(counter-1, -1, -1):
-        file.write(messages[count].content + "\n")
-        
     file.close()
 
 client.run('token')
