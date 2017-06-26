@@ -91,7 +91,6 @@ async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
 @client.command()
 async def leave():
     try:
-        
         await client.disconnect()
     except:
         print("Error disconnecting")
@@ -154,6 +153,13 @@ async def saveMessages(ctx, fileName=None):
 
     file.close()
 
+@client.command(pass_context = True)
+async def kickMember(ctx, member: discord.Member = None):
+    if member == None:
+        await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
+        return
 
+    await client.kick(member)
+    await client.say(member.mention + " has been kicked from the server.")
 
 client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
