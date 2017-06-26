@@ -1,6 +1,7 @@
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
+
 import asyncio
 import logging
 
@@ -14,8 +15,6 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-
-
 
 
 @client.command()
@@ -35,18 +34,8 @@ async def kill(ctx, member: discord.Member = None):
     if member is None:
         await client.say(ctx.message.author.mention + ": I can't kill someone unless you give me a name.")
         return
-    
-    flag = False
-    for server in client.servers:
-        for memberP in server.members:
-            print("test")
-            if member.name == memberP.name:
-                flag = True
-                break
-
-    if not flag:
-        await client.say(ctx.message.author.mention + ": person does not exist.")
-    
+        
+          
     if member.id == client.user.id:
         await client.say(ctx.message.author.mention + ": Why do you want me to kill myself?")
     elif member.id == ctx.message.author.id:
@@ -68,7 +57,7 @@ async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
     Must be of the form: .arith operation value1, value2, ..., valuen
     valuen being the nth number entered
     """
-    if firstVal == None or secondVal == None:
+    if firstVal == None or secondVal == None or type(firstVal) is not float or type(secondVal) is not float:
         await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
         return
     
@@ -98,11 +87,41 @@ async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
             
     await client.say(value)
 
+
+@client.command()
+async def leave():
+    try:
+        
+        await client.disconnect()
+    except:
+        print("Error disconnecting")
+
+@client.command(pass_context = True)
+async def avatar(ctx, member : discord.Member = None):
+    try:
+        if(member == None):
+            await client.say(ctx.message.author.avatar_url)
+            return
+        else:
+            await client.say(member.avatar_url)
+    except:
+        await client.say("User does not have an avatar.")
+    
+
 #####ADMIN FUNCTIONS#####
             
 #CLEAN CHAT LAST N MESSAGES
 @client.command(pass_context = True)
-async def clearChat(ctx, number):
+async def clearChat(ctx, number=None):
+    """
+    function which clears the last n messages in the current channel
+    Parameters:
+        number: The number of lines to be removed
+    """
+    if number == None:
+        await client.say("The format of this command is '.clearChat number'. Lines being the number of lines")
+        return
+    
     messages = []
     number = int(number)
     async for i in client.logs_from(ctx.message.channel, limit = number):
@@ -112,7 +131,15 @@ async def clearChat(ctx, number):
 
 #Save contents of announcements
 @client.command(pass_context = True)
-async def saveMessages(ctx, fileName):
+async def saveMessages(ctx, fileName=None):
+    """
+    Function which saves all messages in the current channel.
+    Argument received is the name of the file to be stored.
+    """
+    if fileName == None:
+        await client.say("The format of this command is '.saveMessages myFile'")
+        return
+    
     file = open(fileName + ".txt", "w")
     await client.delete_message(ctx.message)
     messages = []
@@ -127,4 +154,6 @@ async def saveMessages(ctx, fileName):
 
     file.close()
 
-client.run('token')
+
+
+client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
