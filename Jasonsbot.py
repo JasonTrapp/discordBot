@@ -155,11 +155,14 @@ async def saveMessages(ctx, fileName=None):
 
 @client.command(pass_context = True)
 async def kickMember(ctx, member: discord.Member = None):
-    if member == None:
-        await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
-        return
+    try:
+        if member == None:
+            await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
+            return
 
-    await client.kick(member)
-    await client.say(member.mention + " has been kicked from the server.")
+        await client.kick(member)
+        await client.say(member.mention + " has been kicked from the server.")
+    except:
+        await client.say(ctx.message.author.mention + ": You do not have permission to kick anyone.")
 
 client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
