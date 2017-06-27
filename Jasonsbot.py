@@ -87,6 +87,13 @@ async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
             
     await client.say(value)
 
+@client.command(pass_context = True)
+async def join(ctx):
+    try:
+        channel = client.get_channel('327045818920075266')
+        await client.join_voice_channel(channel)
+    except:
+        print("Channel doesn't exist")
 
 @client.command()
 async def leave():
@@ -155,14 +162,22 @@ async def saveMessages(ctx, fileName=None):
 
 @client.command(pass_context = True)
 async def kickMember(ctx, member: discord.Member = None):
+    """
+    Function that kicks a user
+    Exception thrown when user doesn't have permission
+    """
     try:
+        print("test")
         if member == None:
             await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
             return
-
+        elif member == ctx.message.author:
+            await client.say(ctx.message.author.mention + ": You cannot kick yourself.")
+            return
+        
         await client.kick(member)
         await client.say(member.mention + " has been kicked from the server.")
     except:
-        await client.say(ctx.message.author.mention + ": You do not have permission to kick anyone.")
+        await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
 
 client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
