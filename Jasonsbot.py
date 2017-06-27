@@ -1,6 +1,7 @@
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
+from discord.errors import *
 
 import asyncio
 import logging
@@ -20,9 +21,6 @@ async def on_ready():
 @client.command()
 async def hello(*args):
     await client.say("Hello")
-
-
-
 
 #TODO FIX NONE EXISTANT MEMBER
 @client.command(pass_context = True)
@@ -89,18 +87,34 @@ async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
 
 @client.command(pass_context = True)
 async def join(ctx):
+    """
+    Connects bot to the voice channel user is currently in.
+    """
     try:
-        channel = client.get_channel('327045818920075266')
-        await client.join_voice_channel(channel)
-    except:
-        print("Channel doesn't exist")
+        await client.join_voice_channel(ctx.message.author.voice_channel)
+    except InvalidArgument:
+        await client.say("Channel doesn't exist.")
+        return
+    except ClientException:
+        await client.say("I'm already connected.")
+        return
+    except asyncio.TimeoutError:
+        await client.say("Could not connect in time.")
+        return
 
-@client.command()
-async def leave():
+@client.command(pass_context = True)
+async def leave(ctx):
+    """
+    Disconnects bot from voice channel.
+    """
     try:
-        await client.disconnect()
+        for voice in list(client.voice_clients):
+            try:
+                await voice.disconnect()
+            except:
+                pass
     except:
-        print("Error disconnecting")
+        await client.say("Error disconnecting")
 
 @client.command(pass_context = True)
 async def avatar(ctx, member : discord.Member = None):
@@ -113,10 +127,9 @@ async def avatar(ctx, member : discord.Member = None):
     except:
         await client.say("User does not have an avatar.")
     
-
-#####ADMIN FUNCTIONS#####
-            
-#CLEAN CHAT LAST N MESSAGES
+###########################
+##### ADMIN FUNCTIONS #####
+###########################
 @client.command(pass_context = True)
 async def clearChat(ctx, number=None):
     """
@@ -135,7 +148,6 @@ async def clearChat(ctx, number=None):
         
     deleted = await client.delete_messages(messages)
 
-#Save contents of announcements
 @client.command(pass_context = True)
 async def saveMessages(ctx, fileName=None):
     """
@@ -167,7 +179,6 @@ async def kickMember(ctx, member: discord.Member = None):
     Exception thrown when user doesn't have permission
     """
     try:
-        print("test")
         if member == None:
             await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
             return
@@ -179,5 +190,15 @@ async def kickMember(ctx, member: discord.Member = None):
         await client.say(member.mention + " has been kicked from the server.")
     except:
         await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
+        return
+    
+@client.command()
+async def dc():
+    """
+    Disconnects the bot from the server.
+    Need to restart the program for bot to join
+    """
+    await client.close()
+
 
 client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
