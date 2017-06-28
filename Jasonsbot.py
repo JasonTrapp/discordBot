@@ -5,6 +5,7 @@ from discord.errors import *
 
 import asyncio
 import logging
+import random as rand
 
 client = discord.Client()
 bot_prefix = "."
@@ -21,31 +22,6 @@ async def on_ready():
 @client.command()
 async def hello(*args):
     await client.say("Hello")
-
-#TODO FIX NONE EXISTANT MEMBER
-@client.command(pass_context = True)
-async def kill(ctx, member: discord.Member = None):
-    """
-    Kill a specified user
-
-    """
-    if member is None:
-        await client.say(ctx.message.author.mention + ": I can't kill someone unless you give me a name.")
-        return
-        
-          
-    if member.id == client.user.id:
-        await client.say(ctx.message.author.mention + ": Why do you want me to kill myself?")
-    elif member.id == ctx.message.author.id:
-        await client.say(ctx.message.author.mention + ": Why do you want to die?")
-    else:
-        await client.say(ctx.message.author.mention + ": Killing " + member.mention)
-
-@client.command(pass_context = True)
-async def getChannels(ctx):
-    for server in client.servers:
-        for channel in server.channels:
-            await client.say(channel)
 
 @client.command(pass_context = True)
 async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
@@ -115,6 +91,7 @@ async def leave(ctx):
                 pass
     except:
         await client.say("Error disconnecting")
+        return
 
 @client.command(pass_context = True)
 async def avatar(ctx, member : discord.Member = None):
@@ -126,6 +103,56 @@ async def avatar(ctx, member : discord.Member = None):
             await client.say(member.avatar_url)
     except:
         await client.say("User does not have an avatar.")
+        return
+
+###########################
+####### FUN COMMANDS ######
+###########################
+@client.command(pass_context = True)
+async def kill(ctx, member: discord.Member = None):
+    """
+    Kill a specified user
+
+    """
+    if member is None:
+        await client.say(ctx.message.author.mention + ": I can't kill someone unless you give me a name.")
+        return
+           
+    if member.id == client.user.id:
+        await client.say(ctx.message.author.mention + ": Why do you want me to kill myself?")
+    elif member.id == ctx.message.author.id:
+        await client.say(ctx.message.author.mention + ": Why do you want to die?")
+    else:
+        await client.say(ctx.message.author.mention + ": Killing " + member.mention)
+        
+@client.command(pass_context = True)
+async def ball(ctx, command: str = None):
+    """
+    8ball which determines the probability of something happening.
+    """
+    if command == None:
+        await client.say(ctx.message.author.mention + ", please enter a question.")
+        return
+
+    val = rand.randint(1,6)
+    if val == 1:
+        await client.say("It is impossible that will happen.")
+        return
+    elif val == 2:
+        await client.say("It is unlikely that will happen.")
+        return
+    elif val == 3:
+        await client.say("It is possible that might happen.")
+        return
+    elif val == 4:
+        await client.say("I am certain that will happen.")
+        return
+    elif val == 5:
+        await client.say("Ask me again later.")
+        return
+    else:
+        await client.say("I don't feel like answering.")
+        return
     
 ###########################
 ##### ADMIN FUNCTIONS #####
