@@ -6,11 +6,35 @@ from discord.errors import *
 import asyncio
 import logging
 import random as rand
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import pylab
+import re
+
+replacements = {
+    'sin' : 'np.sin',
+    'cos' : 'np.cos',
+    'exp': 'np.exp',
+    'sqrt': 'np.sqrt',
+    '^': '**'
+}
+
+allowed_words = [
+    'x',
+    'sin',
+    'cos',
+    'sqrt',
+    'exp',
+]
 
 client = discord.Client()
 bot_prefix = "."
 client = commands.Bot(command_prefix=bot_prefix)
 
+###########################
+########## EVENTS #########
+###########################
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -18,48 +42,9 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-
 @client.command()
 async def hello(*args):
-    await client.say("Hello")
-
-@client.command(pass_context = True)
-async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
-    """
-    Perform arithmetic operations: +, -, *, /. Must provide 2 numbers to calculate.
-    
-    Must be of the form: .arith operation value1, value2, ..., valuen
-    valuen being the nth number entered
-    """
-    if firstVal == None or secondVal == None or type(firstVal) is not float or type(secondVal) is not float:
-        await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
-        return
-    
-    if symbol != "+" and symbol != "*" and symbol != "-" and symbol != "/":
-        await client.say(ctx.message.author.mention + ": Operations accepted are +, -, * and /")
-        return
-
-    flagSymbol = False
-    if symbol == "*":
-        value = int(firstVal) * int(secondVal)
-    elif symbol == "-":
-        value = int(firstVal) - int(secondVal)
-    elif symbol == "/":
-        value = int(firstVal) / int(secondVal)
-    else:
-        value = 0
-
-    for arg in args:
-        if symbol == "+":
-            value += int(arg)
-        elif symbol == "*":
-            value *= int(arg)
-        elif symbol == "/":
-            value /= float(arg)
-        elif symbol == "-":
-            value -= int(arg)
-            
-    await client.say(value)
+    await client.send_message(message.channel, "Hello")
 
 @client.command(pass_context = True)
 async def join(ctx):
@@ -104,6 +89,82 @@ async def avatar(ctx, member : discord.Member = None):
     except:
         await client.say("User does not have an avatar.")
         return
+
+###########################
+###### Math COMMANDS ######
+###########################
+@client.command(pass_context = True)
+async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
+    """
+    Perform arithmetic operations: +, -, *, /. Must provide 2 numbers to calculate.
+    
+    Must be of the form: .arith operation value1, value2, ..., valuen
+    valuen being the nth number entered
+    """
+    if firstVal == None or secondVal == None or type(firstVal) is not float or type(secondVal) is not float:
+        await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
+        return
+    
+    if symbol != "+" and symbol != "*" and symbol != "-" and symbol != "/":
+        await client.say(ctx.message.author.mention + ": Operations accepted are +, -, * and /")
+        return
+
+    flagSymbol = False
+    if symbol == "*":
+        value = int(firstVal) * int(secondVal)
+    elif symbol == "-":
+        value = int(firstVal) - int(secondVal)
+    elif symbol == "/":
+        value = int(firstVal) / int(secondVal)
+    else:
+        value = 0
+
+    for arg in args:
+        if symbol == "+":
+            value += int(arg)
+        elif symbol == "*":
+            value *= int(arg)
+        elif symbol == "/":
+            value /= float(arg)
+        elif symbol == "-":
+            value -= int(arg)
+            
+    await client.say(value)
+
+@client.command(pass_context = True)
+async def plot(ctx, function=None, x1=-10, x2=10):
+    if function == None:
+        await client.say("Please enter a function to be evaluated.")
+        return
+    
+    func = helper(function)
+    a = float(x1)
+    b = float(x2)
+
+    x = np.linspace(a, b, 250)
+
+    fig1 = plt.gcf()
+    plt.plot(x, func(x))
+    plt.xlim(a,b)
+
+    fig1.savefig('plot.png',bbox_inches='tight')    
+    await client.send_file(ctx.message.channel, "/home/jason/Documents/Programming/python/discordBot/plot.png")
+    plt.gcf().clear()
+
+def helper(function):
+    for word in re.findall('[a-zA-Z_]+', function):
+        if word not in allowed_words:
+            raise ValueError(
+                '"{}" is forbidden to use in math expression'.format(word)
+            )
+
+    for old, new in replacements.items():
+        function = function.replace(old, new)
+
+    def func(x):
+        return eval(function)
+
+    return func
 
 ###########################
 ####### FUN COMMANDS ######
@@ -215,8 +276,11 @@ async def kickMember(ctx, member: discord.Member = None):
         
         await client.kick(member)
         await client.say(member.mention + " has been kicked from the server.")
-    except:
+    except Forbidden:
         await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
+        return
+    except HTTPException:
+        await client.say("Something went wrong, please try again.")
         return
     
 @client.command()
@@ -227,5 +291,28 @@ async def dc():
     """
     await client.close()
 
+@client.command(pass_context = True)
+async def banMember(ctx, member : discord.Member = None, days = 1):
+    """
+    Bans specified member from the server.
+    """
+    try:
+        if member == None:
+            await client.say(ctx.message.author.mention + ", please specify a member to ban.")
+            return
+
+        if member.id == ctx.message.author.id:
+            await client.say(ctx.message.author.mention + ", you cannot ban yourself.")
+            return
+        else:
+            await client.ban(member, days)
+            return
+    except Forbidden:
+        await client.say("You do not have the necessary permissions to ban someone.")
+        return
+    except HTTPException:
+        await client.say("Something went wrong, please try again.")
+        
+    
 
 client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
