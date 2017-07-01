@@ -18,7 +18,8 @@ replacements = {
     'tan' : 'np.tan',
     'exp' : 'np.exp',
     'sqrt' : 'np.sqrt',
-    '^': '**'
+    '^': '**',
+    'pi' : 'np.pi'
 }
 
 allowed_words = [
@@ -29,7 +30,8 @@ allowed_words = [
     'exp',
     'cosh',
     'sinh',
-    'tanh'
+    'tanh',
+    'pi'
 ]
 
 client = discord.Client()
@@ -113,12 +115,31 @@ async def Help():
 ###### Math COMMANDS ######
 ###########################
 @client.command(pass_context = True)
-async def calc(ctx, ops):
+async def calc(ctx, ops=None):
     try:
-        ops = eval(ops)
+        if ops == None:
+            await client.say("Please enter something to compute.")
+            return
+
+        for word in re.findall('[a-zA-Z_]+', ops):
+            if word not in allowed_words:
+                raise ValueError(
+                    '"{}" is forbidden to use in math expression'.format(word)
+                )
+
+        for old, new in replacements.items():
+            ops = ops.replace(old, new)
+
+        ops = eval(ops)        
+        if abs(ops) < 1e-10:
+            await client.say("0")
+            return
+        
         await client.say(ops)
+        return
     except:
-        await client.say("You did not enter a valid operation.")
+        await client.say("An illegal operation has been entered.")
+    
 
 @client.command(pass_context = True)
 async def plot(ctx, function=None, x1=-10, x2=10):
