@@ -15,8 +15,9 @@ import re
 replacements = {
     'sin' : 'np.sin',
     'cos' : 'np.cos',
-    'exp': 'np.exp',
-    'sqrt': 'np.sqrt',
+    'tan' : 'np.tan',
+    'exp' : 'np.exp',
+    'sqrt' : 'np.sqrt',
     '^': '**'
 }
 
@@ -26,6 +27,9 @@ allowed_words = [
     'cos',
     'sqrt',
     'exp',
+    'cosh',
+    'sinh',
+    'tanh'
 ]
 
 client = discord.Client()
@@ -53,6 +57,7 @@ async def join(ctx):
     """
     try:
         await client.join_voice_channel(ctx.message.author.voice_channel)
+        await client.say("I am now connected.")
     except InvalidArgument:
         await client.say("Channel doesn't exist.")
         return
@@ -78,6 +83,9 @@ async def leave(ctx):
         await client.say("Error disconnecting")
         return
 
+###########################
+###### MISCELLANEOUS ######
+###########################
 @client.command(pass_context = True)
 async def avatar(ctx, member : discord.Member = None):
     try:
@@ -90,46 +98,27 @@ async def avatar(ctx, member : discord.Member = None):
         await client.say("User does not have an avatar.")
         return
 
+@client.command()
+async def Help():
+    await client.say(".join - bot joins the users voice channel.")
+    await client.say(".leave - bot disconnects from voice channel.")
+    await client.say(".plot function x1 x2 - x1 and x2 are optional")
+    await client.say(".kill user - Tell the bot to kill a user.")
+    await client.say(".ball question - Determine the probability of an event happening.")
+    await client.say(".clearChat n - clear n lines from chat.")
+    await client.say(".saveMessages filename - saves all messages in channel to a text file")
+    await client.say(".kickMember user - kick user from the server")
+
 ###########################
 ###### Math COMMANDS ######
 ###########################
 @client.command(pass_context = True)
-async def arith(ctx, symbol, firstVal=None, secondVal=None, *args):
-    """
-    Perform arithmetic operations: +, -, *, /. Must provide 2 numbers to calculate.
-    
-    Must be of the form: .arith operation value1, value2, ..., valuen
-    valuen being the nth number entered
-    """
-    if firstVal == None or secondVal == None or type(firstVal) is not float or type(secondVal) is not float:
-        await client.say(ctx.message.author.mention + ": Input is of the form 'operation num1 num2 ...'")
-        return
-    
-    if symbol != "+" and symbol != "*" and symbol != "-" and symbol != "/":
-        await client.say(ctx.message.author.mention + ": Operations accepted are +, -, * and /")
-        return
-
-    flagSymbol = False
-    if symbol == "*":
-        value = int(firstVal) * int(secondVal)
-    elif symbol == "-":
-        value = int(firstVal) - int(secondVal)
-    elif symbol == "/":
-        value = int(firstVal) / int(secondVal)
-    else:
-        value = 0
-
-    for arg in args:
-        if symbol == "+":
-            value += int(arg)
-        elif symbol == "*":
-            value *= int(arg)
-        elif symbol == "/":
-            value /= float(arg)
-        elif symbol == "-":
-            value -= int(arg)
-            
-    await client.say(value)
+async def calc(ctx, ops):
+    try:
+        ops = eval(ops)
+        await client.say(ops)
+    except:
+        await client.say("You did not enter a valid operation.")
 
 @client.command(pass_context = True)
 async def plot(ctx, function=None, x1=-10, x2=10):
@@ -160,7 +149,7 @@ def helper(function):
 
     for old, new in replacements.items():
         function = function.replace(old, new)
-
+    print(function)
     def func(x):
         return eval(function)
 
@@ -261,7 +250,7 @@ async def saveMessages(ctx, fileName=None):
     file.close()
 
 @client.command(pass_context = True)
-async def kickMember(ctx, member: discord.Member = None):
+async def kickMember(ctx, member: discord.Member = None, reason = "."):
     """
     Function that kicks a user
     Exception thrown when user doesn't have permission
@@ -275,7 +264,10 @@ async def kickMember(ctx, member: discord.Member = None):
             return
         
         await client.kick(member)
-        await client.say(member.mention + " has been kicked from the server.")
+        if reason == ".":
+            await client.say(member.mention + " has been kicked from the server.")
+        else:
+            await client.say(member.mention + " has been kicked from the server for " + reason + ".")
     except Forbidden:
         await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
         return
@@ -289,10 +281,11 @@ async def dc():
     Disconnects the bot from the server.
     Need to restart the program for bot to join
     """
+    await client.say("Good night.")
     await client.close()
 
 @client.command(pass_context = True)
-async def banMember(ctx, member : discord.Member = None, days = 1):
+async def banMember(ctx, member : discord.Member = None, days = 1, reason = "."):
     """
     Bans specified member from the server.
     """
@@ -306,6 +299,10 @@ async def banMember(ctx, member : discord.Member = None, days = 1):
             return
         else:
             await client.ban(member, days)
+            if reason == ".":
+                await client.say(member.mention + " has been banned from the server.")
+            else:
+                await client.say(member.mention + " has been banned from the server for " + reason + ".")
             return
     except Forbidden:
         await client.say("You do not have the necessary permissions to ban someone.")
