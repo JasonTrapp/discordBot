@@ -48,9 +48,27 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-@client.command()
-async def hello(*args):
-    await client.send_message(message.channel, "Hello")
+@client.event
+async def on_member_join(member : discord.Member):
+    for server in client.servers:
+        for channel in server.channels:
+            if channel.name == 'general':
+                await client.send_message(channel, "Welcome to the server, " +  member.mention)
+                return
+
+@client.event
+async def on_member_remove(member : discord.Member):
+    for server in client.servers:
+        for channel in server.channels:
+            if channel.name == 'general':
+                await client.send_message(channel,"See ya m8")
+                return
+
+@client.event
+async def on_message(message):
+    if message.content.startswith("hi") or message.content.startswith("hello"):
+        await client.send_message(message.channel, "Hello")
+    return
 
 @client.command(pass_context = True)
 async def join(ctx):
@@ -244,7 +262,14 @@ async def clearChat(ctx, number=None):
     async for i in client.logs_from(ctx.message.channel, limit = number):
         messages.append(i)
         
-    deleted = await client.delete_messages(messages)
+    await client.delete_messages(messages)
+
+@client.command(pass_context = True)
+async def test(ctx):
+    if ctx.author == administrator:
+        print("true")
+    else:
+        print("false")
 
 @client.command(pass_context = True)
 async def saveMessages(ctx, fileName=None):
@@ -252,6 +277,7 @@ async def saveMessages(ctx, fileName=None):
     Function which saves all messages in the current channel.
     Argument received is the name of the file to be stored.
     """
+    
     if fileName == None:
         await client.say("The format of this command is '.saveMessages myFile'")
         return
