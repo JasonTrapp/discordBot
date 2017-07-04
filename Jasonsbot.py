@@ -277,25 +277,30 @@ async def saveMessages(ctx, fileName=None):
     Function which saves all messages in the current channel.
     Argument received is the name of the file to be stored.
     """
-    
-    if fileName == None:
-        await client.say("The format of this command is '.saveMessages myFile'")
+    try:
+        if fileName == None:
+            await client.say("The format of this command is '.saveMessages myFile'")
+            return
+        
+        file = open(fileName + ".txt", "w")
+        await client.delete_message(ctx.message)
+        messages = []
+        counter = 0
+        async for i in client.logs_from(ctx.message.channel, limit=100):
+            messages.append(i)
+            counter += 1
+
+        for count in range(counter-1, -1, -1):
+            file.write(str(messages[count].timestamp.date()) + "\n")
+            file.write(messages[count].content + "\n")
+
+        file.close()
         return
     
-    file = open(fileName + ".txt", "w")
-    await client.delete_message(ctx.message)
-    messages = []
-    counter = 0
-    async for i in client.logs_from(ctx.message.channel, limit=100):
-        messages.append(i)
-        counter += 1
-
-    for count in range(counter-1, -1, -1):
-        file.write(str(messages[count].timestamp.date()) + "\n")
-        file.write(messages[count].content + "\n")
-
-    file.close()
-
+    except OSError:
+        await client.say("File cannot be opened.")
+        return
+    
 @client.command(pass_context = True)
 async def kickMember(ctx, member: discord.Member = None, reason = "."):
     """
@@ -359,4 +364,4 @@ async def banMember(ctx, member : discord.Member = None, days = 1, reason = ".")
         
     
 
-client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DC-nBA.jS3JRACpZMtczaweyZwPoh27kUU')
+client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DDxvAQ.Yj0we3GJ9qYWOuwLR7dFo-Jdy7A')
