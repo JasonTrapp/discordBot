@@ -63,35 +63,31 @@ async def on_member_remove(member : discord.Member):
             if channel.name == 'general':
                 await client.send_message(channel,"See ya m8")
                 return
-
-@client.event
-async def on_message(message):
-    if message.content.startswith("hi") or message.content.startswith("hello"):
-        await client.send_message(message.channel, "Hello")
-    return
+    
 
 @client.command(pass_context = True)
 async def join(ctx):
     """
     Connects bot to the voice channel user is currently in.
+    Keyword arguments:
+    ctx -- The non-private channel context
     """
     try:
         await client.join_voice_channel(ctx.message.author.voice_channel)
         await client.say("I am now connected.")
     except InvalidArgument:
         await client.say("Channel doesn't exist.")
-        return
     except ClientException:
         await client.say("I'm already connected.")
-        return
     except asyncio.TimeoutError:
         await client.say("Could not connect in time.")
-        return
 
 @client.command(pass_context = True)
 async def leave(ctx):
     """
     Disconnects bot from voice channel.
+    Keyword arguments:
+    ctx -- The non-private channel context
     """
     try:
         for voice in list(client.voice_clients):
@@ -101,39 +97,38 @@ async def leave(ctx):
                 pass
     except:
         await client.say("Error disconnecting")
-        return
+        
 
 ###########################
 ###### MISCELLANEOUS ######
 ###########################
 @client.command(pass_context = True)
 async def avatar(ctx, member : discord.Member = None):
+    """
+    Gets the users avatar url.
+    Keyword arguments:
+    ctx -- The non-private channel context
+    member -- The member in question, if none then the author
+    """
     try:
         if(member == None):
             await client.say(ctx.message.author.avatar_url)
-            return
         else:
             await client.say(member.avatar_url)
     except:
         await client.say("User does not have an avatar.")
-        return
-
-@client.command()
-async def Help():
-    await client.say(".join - bot joins the users voice channel.")
-    await client.say(".leave - bot disconnects from voice channel.")
-    await client.say(".plot function x1 x2 - x1 and x2 are optional")
-    await client.say(".kill user - Tell the bot to kill a user.")
-    await client.say(".ball question - Determine the probability of an event happening.")
-    await client.say(".clearChat n - clear n lines from chat.")
-    await client.say(".saveMessages filename - saves all messages in channel to a text file")
-    await client.say(".kickMember user - kick user from the server")
 
 ###########################
 ###### Math COMMANDS ######
 ###########################
 @client.command(pass_context = True)
 async def calc(ctx, ops=None):
+    """
+    A basic calculator to compute the values entered
+    Keyword arguments:
+    ctx -- The non-private channel context
+    ops -- The operations and operands to compute
+    """
     try:
         if ops == None:
             await client.say("Please enter something to compute.")
@@ -154,13 +149,20 @@ async def calc(ctx, ops=None):
             return
         
         await client.say(ops)
-        return
     except:
         await client.say("An illegal operation has been entered.")
     
 
 @client.command(pass_context = True)
 async def plot(ctx, function=None, x1=-10, x2=10):
+    """
+    Uses matplotlib to plot a mathematical function with respect to x.
+    Keyword arguments:
+    ctx -- The non-private channel context
+    function -- The function to be plotted
+    x1 -- The x-value to start at
+    x2 -- The x-value to end at
+    """
     if function == None:
         await client.say("Please enter a function to be evaluated.")
         return
@@ -201,7 +203,9 @@ def helper(function):
 async def kill(ctx, member: discord.Member = None):
     """
     Kill a specified user
-
+    Keyword arguments:
+    ctx -- The non-private channel context
+    member -- The member to kill
     """
     if member is None:
         await client.say(ctx.message.author.mention + ": I can't kill someone unless you give me a name.")
@@ -218,6 +222,9 @@ async def kill(ctx, member: discord.Member = None):
 async def ball(ctx, command: str = None):
     """
     8ball which determines the probability of something happening.
+    Keyword arguments:
+    ctx -- The non-private channel context
+    command -- The string in which the 8ball determines the probability will occur
     """
     if command == None:
         await client.say(ctx.message.author.mention + ", please enter a question.")
@@ -226,22 +233,16 @@ async def ball(ctx, command: str = None):
     val = rand.randint(1,6)
     if val == 1:
         await client.say("It is impossible that will happen.")
-        return
     elif val == 2:
         await client.say("It is unlikely that will happen.")
-        return
     elif val == 3:
         await client.say("It is possible that might happen.")
-        return
     elif val == 4:
         await client.say("I am certain that will happen.")
-        return
     elif val == 5:
         await client.say("Ask me again later.")
-        return
     else:
         await client.say("I don't feel like answering.")
-        return
     
 ###########################
 ##### ADMIN FUNCTIONS #####
@@ -250,32 +251,31 @@ async def ball(ctx, command: str = None):
 async def clearChat(ctx, number=None):
     """
     function which clears the last n messages in the current channel
-    Parameters:
-        number: The number of lines to be removed
+    Keyword arguments:
+    ctx -- The non-private channel context
+    number -- The number of lines to clear.
     """
     if number == None:
         await client.say("The format of this command is '.clearChat number'. Lines being the number of lines")
         return
-    
+
     messages = []
     number = int(number)
+    if number > 100:
+        number = 100
+    
     async for i in client.logs_from(ctx.message.channel, limit = number):
         messages.append(i)
         
     await client.delete_messages(messages)
 
 @client.command(pass_context = True)
-async def test(ctx):
-    if ctx.author == administrator:
-        print("true")
-    else:
-        print("false")
-
-@client.command(pass_context = True)
 async def saveMessages(ctx, fileName=None):
     """
     Function which saves all messages in the current channel.
-    Argument received is the name of the file to be stored.
+    Keyword arguments:
+    ctx -- The non-private channel context.
+    fileName -- The filename to store the messages in.
     """
     try:
         if fileName == None:
@@ -299,15 +299,37 @@ async def saveMessages(ctx, fileName=None):
     
     except OSError:
         await client.say("File cannot be opened.")
-        return
-    
+
 @client.command(pass_context = True)
-async def kickMember(ctx, member: discord.Member = None, reason = "."):
+async def test(ctx):
+    for perms in ctx.message.author.server_permissions:
+        if perms[0] == 'ban_members' and perms[1]:
+            await client.say("true")
+            return
+    await client.say("false")
+    
+
+@client.command(pass_context = True)
+async def kickMember(ctx, member: discord.Member = None, reason = "private reasons"):
     """
     Function that kicks a user
+    Keyword arguments:
+    ctx -- The non-private channel context
+    member -- The member to kick
+    reason -- The reason for kicking a member
     Exception thrown when user doesn't have permission
     """
     try:
+        flag = False
+        for perms in ctx.message.author.server_permissions:
+            if perms[0] == 'kick_members' and perms[1]:
+                flag = true
+                break
+
+        if not flag:
+            await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
+            return
+        
         if member == None:
             await client.say(ctx.message.author.mention + ": Please specify a user to kick.")
             return
@@ -321,11 +343,9 @@ async def kickMember(ctx, member: discord.Member = None, reason = "."):
         else:
             await client.say(member.mention + " has been kicked from the server for " + reason + ".")
     except Forbidden:
-        await client.say(ctx.message.author.mention + ": You do not have permission to kick this user.")
-        return
+        await client.say(ctx.message.author.mention + ": Bot does not have permission to kick this user.")
     except HTTPException:
         await client.say("Something went wrong, please try again.")
-        return
     
 @client.command()
 async def dc():
@@ -337,25 +357,40 @@ async def dc():
     await client.close()
 
 @client.command(pass_context = True)
-async def banMember(ctx, member : discord.Member = None, days = 1, reason = "."):
+async def banMember(ctx, member : discord.Member = None, days = 1, reason = "private reasons"):
     """
     Bans specified member from the server.
+    Keyword arguments:
+    ctx -- The non-private channel context
+    member -- The member to be banned.
+    days -- Number of days to ban a user
+    reason -- reason for banning a user
     """
     try:
+        flag = False
+        for perms in ctx.message.author.server_permissions:
+            if perms[0] == 'ban_members' and perms[1]:
+                flag = true
+                break
+
+        if not flag:
+            await client.say(ctx.message.author.mention + ": You do not have permission to ban this user.")
+            return
+        
         if member == None:
             await client.say(ctx.message.author.mention + ", please specify a member to ban.")
             return
 
         if member.id == ctx.message.author.id:
             await client.say(ctx.message.author.mention + ", you cannot ban yourself.")
-            return
         else:
             await client.ban(member, days)
             if reason == ".":
                 await client.say(member.mention + " has been banned from the server.")
             else:
                 await client.say(member.mention + " has been banned from the server for " + reason + ".")
-            return
+        return
+
     except Forbidden:
         await client.say("You do not have the necessary permissions to ban someone.")
         return
@@ -364,4 +399,4 @@ async def banMember(ctx, member : discord.Member = None, days = 1, reason = ".")
         
     
 
-client.run('MzI3MDQ1NjI0NDAwOTY5NzI4.DDxvAQ.Yj0we3GJ9qYWOuwLR7dFo-Jdy7A')
+client.run('MzMxNjY0NzM5NjkwMzQ4NTY0.DDy2gw.j3ufZBqM-bgm9i74t8u14qDjMk4')
