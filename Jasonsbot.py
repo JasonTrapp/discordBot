@@ -2,7 +2,9 @@ import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
 from discord.errors import *
+from pprint import pprint
 
+import requests
 import asyncio
 import logging
 import random as rand
@@ -11,6 +13,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pylab
 import re
+
 
 replacements = {
     'sin' : 'np.sin',
@@ -117,6 +120,20 @@ async def avatar(ctx, member : discord.Member = None):
             await client.say(member.avatar_url)
     except:
         await client.say("User does not have an avatar.")
+
+@client.command(pass_context = True)
+async def weather(ctx, location : str = None):
+    """
+    Gets the weather of a city.
+    
+    """
+    if location == None:
+        await client.say("You didn't enter a city to get the temperature of.")
+        return
+
+    r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+location+'&APPID=8b49f55c9cc65904c99181f3bf4ebab6')
+    
+    await client.say('%.2f' % (r.json().get('main').get('temp') - 273.15))
 
 ###########################
 ###### Math COMMANDS ######
@@ -298,16 +315,7 @@ async def saveMessages(ctx, fileName=None):
         return
     
     except OSError:
-        await client.say("File cannot be opened.")
-
-@client.command(pass_context = True)
-async def test(ctx):
-    for perms in ctx.message.author.server_permissions:
-        if perms[0] == 'ban_members' and perms[1]:
-            await client.say("true")
-            return
-    await client.say("false")
-    
+        await client.say("File cannot be opened.")    
 
 @client.command(pass_context = True)
 async def kickMember(ctx, member: discord.Member = None, reason = "private reasons"):
@@ -392,7 +400,7 @@ async def banMember(ctx, member : discord.Member = None, days = 1, reason = "pri
         return
 
     except Forbidden:
-        await client.say("You do not have the necessary permissions to ban someone.")
+        await client.say("The bot does not have the necessary permissions to ban someone.")
         return
     except HTTPException:
         await client.say("Something went wrong, please try again.")
