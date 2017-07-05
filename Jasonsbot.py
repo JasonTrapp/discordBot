@@ -132,8 +132,8 @@ async def weather(ctx, location : str = None):
         return
 
     r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+location+'&APPID=8b49f55c9cc65904c99181f3bf4ebab6')
-    
-    await client.say('%.2f' % (r.json().get('main').get('temp') - 273.15))
+    location = location.capitalize()
+    await client.say('The temperature in ' + location + ' is %d°C' % (r.json().get('main').get('temp') - 273.15))
 
 ###########################
 ###### Math COMMANDS ######
